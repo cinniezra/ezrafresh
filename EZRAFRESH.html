@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EZRAFRESH</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f4f6f1; --paper:#ffffff; --ink:#1c2620; --muted:#5f6d64; --line:#d9e0d8;
+  --accent:#2f6b3a; --accent-ink:#ffffff; --accent-soft:#e3efe3; --pick:#2f6b3a;
+  --warn:#b5561c; --warn-soft:#f6e7d8; --star:#e0a62a;
+  --shadow:0 1px 2px rgba(28,38,32,.06),0 8px 24px rgba(28,38,32,.06);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#141a16; --paper:#1c2420; --ink:#e8ede8; --muted:#9aa89e; --line:#2c3a30;
+  --accent:#7fc48a; --accent-ink:#0f1a12; --accent-soft:#213a27; --pick:#7fc48a;
+  --warn:#e8a06a; --warn-soft:#3a2a1c; --star:#f2c14e;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3); color-scheme:dark;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,sans-serif;padding:0 20px;padding-block:20px 120px}
+.wrap{max-width:1120px;margin:0 auto}
+/* header / logo */
+.brand{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin-bottom:14px}
+.logo{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.logo .leaf{width:42px;height:42px;border-radius:12px;background:var(--accent);display:grid;place-items:center;font-size:24px;box-shadow:var(--shadow)}
+.logo .word{font:900 30px/1 "Fraunces","Georgia",serif;letter-spacing:-.02em}
+.logo .word b{color:var(--accent);font-weight:900}
+.tagline{color:var(--muted);font-size:13px}
+.brand .meta{margin-left:auto;font:500 12px/1.4 "IBM Plex Mono",monospace;color:var(--muted);text-align:right}
+nav.tabs{display:flex;gap:2px;margin-bottom:18px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px;font:600 14px "IBM Plex Sans",sans-serif;color:var(--muted);cursor:pointer;margin-bottom:-1px;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+nav.tabs button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:6px}
+nav.tabs .n{font:500 12px "IBM Plex Mono",monospace;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 7px;margin-left:6px}
+/* tools */
+.tools{display:flex;flex-wrap:wrap;gap:12px 10px;align-items:center;margin-bottom:22px}
+#chips,#chips2{display:contents}
+#chips2[hidden]{display:none}
+[hidden]{display:none!important}
+.search{flex:1 1 220px;max-width:360px;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font:inherit;color:var(--ink)}
+.search:focus-visible,input[type=text]:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.chip{background:var(--paper);border:1.5px solid var(--line);border-radius:999px;padding:7px 13px;font:600 12px "IBM Plex Sans",sans-serif;color:var(--muted);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chip:disabled{opacity:.45;cursor:default}
+.chip:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.chip.favchip[aria-pressed="true"]{color:var(--star);border-color:var(--star);background:transparent}
+.chip.time[aria-pressed="true"]{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.status{color:var(--muted);font:500 12px "IBM Plex Mono",monospace;margin:0 0 12px;font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+/* cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
+.card{position:relative;background:var(--paper);border:1.5px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:border-color .15s,transform .15s}
+.card:hover{transform:translateY(-2px)}
+.card.picked{border-color:var(--pick);box-shadow:0 0 0 2px var(--pick),var(--shadow)}
+.card.sold{opacity:.55}
+.card .pic{position:relative;display:block;width:100%;aspect-ratio:4/3;background:var(--accent-soft);cursor:pointer;border:0;padding:0}
+.card .pic img{display:block;width:100%;height:100%;object-fit:cover;max-width:100%}
+.card .pic:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.pickmark{position:absolute;top:10px;left:10px;width:28px;height:28px;border-radius:50%;background:var(--pick);color:var(--accent-ink);display:none;place-items:center;font-weight:700}
+.card.picked .pickmark{display:grid}
+.star{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;font-size:18px;display:grid;place-items:center;cursor:pointer;line-height:1}
+.star[aria-pressed="true"]{color:var(--star);background:rgba(0,0,0,.5)}
+.star:focus-visible{outline:3px solid #fff}
+.eye{position:absolute;top:8px;right:46px;width:32px;height:32px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;font-size:16px;display:grid;place-items:center;cursor:pointer;line-height:1;opacity:.75}
+.eye:hover,.eye[aria-pressed="true"]{opacity:1;background:rgba(0,0,0,.55)}
+.eye:focus-visible{outline:3px solid #fff}
+select.sortsel{appearance:auto;padding:6px 10px}
+.chip.hidechip[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);background:transparent}
+.soldtag{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font:600 11px "IBM Plex Sans",sans-serif;border-radius:4px;padding:3px 6px}
+.body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.cardrow{display:flex;gap:8px;margin-top:10px}
+.cardrow .btn{margin-left:0;flex:1}
+.name{font:700 18px/1.2 "Fraunces","Georgia",serif;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:13px;margin:0;line-height:1.35}
+.meta2{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:auto;padding-top:8px;font:500 12px/1 "IBM Plex Mono",monospace;color:var(--muted);font-variant-numeric:tabular-nums}
+.meta2 .rating{margin-left:auto}
+.tag{background:var(--accent-soft);color:var(--accent);border-radius:4px;padding:3px 6px;font-family:"IBM Plex Sans",sans-serif;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.morerow{display:flex;justify-content:center;margin:22px 0}
+/* bar */
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgba(0,0,0,.08);padding:12px 20px;z-index:5}
+.bar .in{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.count{font:500 13px/1 "IBM Plex Mono",monospace;color:var(--muted);font-variant-numeric:tabular-nums}
+.count b{color:var(--ink);font-weight:500}
+.btn{margin-left:auto;background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 16px;font:600 14px "IBM Plex Sans",sans-serif;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent);margin-left:0}
+.small{padding:6px 10px;font-size:12px;margin-left:0}
+/* lists + menus */
+.lists{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:22px;align-items:start}
+@media (max-width:760px){.lists{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:18px 20px;box-shadow:var(--shadow)}
+.panel h2{font:700 24px/1.1 "Fraunces","Georgia",serif;margin:0 0 4px}
+.panel h3{font:600 12px/1 "IBM Plex Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+.for{color:var(--muted);margin:0 0 12px;font-size:13px}
+.chosen{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chosen span{background:var(--accent-soft);color:var(--accent);border-radius:6px;padding:4px 9px;font-size:13px;font-weight:600}
+ul.items{list-style:none;margin:0;padding:0}
+ul.items li{display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+ul.items li input{width:18px;height:18px;accent-color:var(--accent);flex:none;position:relative;top:3px;cursor:pointer}
+ul.items li .amt{font:500 13px/1.6 "IBM Plex Mono",monospace;color:var(--muted);min-width:6ch;text-align:right;flex:none}
+ul.items li.done .amt,ul.items li.done .nm{text-decoration:line-through;color:var(--muted)}
+ul.items li .nm{background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;cursor:text;border-bottom:1px dotted transparent}
+ul.items li .nm:hover{border-bottom-color:var(--muted)}
+ul.items li .nm:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+ul.items li .nm.edited::after{content:" ✎";color:var(--accent);font-size:12px}
+ul.items li input.edit{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--accent);border-radius:6px;padding:2px 8px;width:auto;height:auto;position:static;top:0}
+ul.items li .warn{font:600 11px "IBM Plex Sans",sans-serif;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:2px 6px;margin-left:auto;flex:none}
+ul.items.home li{color:var(--muted);padding:3px 0;border-bottom:0;font-size:13px}
+.datelist{display:flex;flex-direction:column;gap:6px;margin:0 0 16px;padding:0;list-style:none}
+.datelist button{width:100%;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;color:var(--ink);cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.datelist button[aria-current="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.datelist li{display:flex;gap:6px}
+.datelist li>button:first-child{flex:1;width:auto}
+.datelist button.del{width:auto;flex:0 0 auto;padding:8px 10px;color:var(--muted);justify-content:center}
+.datelist button.del:hover{color:#c0392b;border-color:#c0392b}
+.datelist .d{font:500 12px "IBM Plex Mono",monospace;color:var(--muted)}
+.pantry{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.pantry span{display:inline-flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 10px;font-size:13px}
+.pantry span button{border:0;background:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:0 4px;border-radius:50%}
+.pantry span button:hover{color:var(--warn)}
+.addrow{display:flex;gap:6px}
+.addrow input{flex:1;min-width:0;background:var(--bg);border:1.5px solid var(--line);border-radius:8px;padding:7px 10px;font:inherit;color:var(--ink)}
+.note{color:var(--muted);font-size:12px;margin:14px 0 0}
+.stats{font:500 12px "IBM Plex Mono",monospace;color:var(--muted);margin:0 0 10px;font-variant-numeric:tabular-nums}
+.sendrow{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px}
+.sendrow .btn{margin-left:0}
+.preview{margin-top:14px;border:1.5px dashed var(--line);border-radius:8px;padding:12px 14px;background:var(--bg)}
+.preview h3{margin-top:0;display:flex;gap:10px;align-items:center}
+.preview .demo{font-weight:500;letter-spacing:0;text-transform:none;background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:2px 6px}
+.preview .pl{margin:10px 0 4px;font-size:13px;color:var(--muted)}
+.preview pre{margin:0;white-space:pre-wrap;font:13px/1.5 "IBM Plex Mono",monospace;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:8px 10px;overflow-x:auto}
+.weekblock{margin-bottom:26px}
+.weekblock h2{font:700 22px/1.1 "Fraunces","Georgia",serif;margin:0 0 4px}
+.weekblock .for{margin-bottom:10px}
+.mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.mini .m{background:var(--paper);border:1.5px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:var(--shadow)}
+.mini img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.mini .t{padding:8px 10px 4px;font:600 13px/1.25 "Fraunces","Georgia",serif;cursor:pointer}
+.mini img{cursor:pointer}
+.mini .cook{margin:0 10px 10px;width:calc(100% - 20px)}
+.mini .m.cooked{opacity:.5}
+.mini .m.cooked .t{text-decoration:line-through}
+.mini .cook[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+/* detail dialog */
+dialog{border:0;border-radius:12px;padding:0;max-width:min(720px,94vw);width:100%;background:var(--paper);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dlg img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.dlg .in{padding:18px 22px 22px}
+.dlg h2{font:700 24px/1.15 "Fraunces","Georgia",serif;margin:0 0 4px;text-wrap:balance}
+.dlg .cols{display:grid;grid-template-columns:1fr 1.4fr;gap:18px;margin-top:14px}
+@media (max-width:640px){.dlg .cols{grid-template-columns:1fr}}
+.dlg ol{padding-left:20px;margin:0;font-size:14px}
+.dlg ol li{margin-bottom:8px}
+.dlg ul{list-style:none;padding:0;margin:0;font-size:14px}
+.dlg ul li{display:flex;gap:8px;padding:3px 0;border-bottom:1px dashed var(--line)}
+.dlg ul li .amt{font:500 12px/1.6 "IBM Plex Mono",monospace;color:var(--muted);min-width:5.5ch;text-align:right}
+.dlg .close{position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.45);color:#fff;font-size:20px;cursor:pointer}
+.dlg .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+@media (max-width:640px){.logo .word{font-size:24px}}
+@media (prefers-reduced-motion:reduce){.card{transition:none}.card:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand">
+  <a class="logo" id="logo" href="#all"><span class="leaf">🥬</span><span class="word">EZRA<b>FRESH</b></span></a>
+  <span class="tagline">Wochenkarte &amp; Einkaufsliste aus Kochbox-Rezepten</span>
+  <div class="meta" id="brandmeta"></div>
+</div>
+<nav class="tabs" role="tablist">
+  <button role="tab" id="tab-all" aria-selected="false" type="button">Alle Gerichte<span class="n" id="n-all">…</span></button>
+  <button role="tab" id="tab-week" aria-selected="true" type="button">Wochenkarte<span class="n" id="n-week">…</span></button>
+  <button role="tab" id="tab-lists" aria-selected="false" type="button">Einkaufslisten<span class="n" id="n-lists">…</span></button>
+</nav>
+
+<section id="view-grid" role="tabpanel">
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="Suchen … (Hähnchen, Pasta, Feta)" aria-label="Rezepte durchsuchen">
+    <button class="chip favchip" id="chip-fav" type="button" aria-pressed="true">★ Favoriten <span id="n-fav">0</span></button>
+    <button class="chip time" id="chip-15" type="button" aria-pressed="false">⏱️ ≤ 15 min</button>
+    <button class="chip hidechip" id="chip-hidden" type="button" aria-pressed="false">🙈 Ausgeblendet <span id="n-hidden">0</span></button>
+    <select class="chip sortsel" id="sort" aria-label="Sortieren"><option value="">Sortieren</option><option value="name">Name A–Z</option><option value="kcal">Kalorien ↑</option><option value="protein">Eiweiß ↓</option><option value="mins">Zeit ↑</option></select>
+    <span id="chips"></span>
+    <button class="chip" id="more" type="button" aria-expanded="false">mehr ▾</button>
+    <span id="chips2" hidden></span>
+  </div>
+  <p class="status" id="status"></p>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>Nichts gefunden.</p>
+  <div class="morerow"><button class="btn ghost" id="loadmore" type="button" hidden>mehr laden</button></div>
+</section>
+
+<section id="view-lists" role="tabpanel" hidden>
+<div class="lists">
+  <div>
+    <div class="panel">
+      <p class="empty" id="nolist">Noch keine Liste. Such auf der Wochenkarte aus und drück <b>Einkaufsliste</b>.</p>
+      <div id="listbody" hidden>
+        <h2 id="ltitle">Einkaufsliste</h2>
+        <p class="for" id="lfor"></p>
+        <div class="chosen" id="lchosen"></div>
+        <p class="stats" id="lstats"></p>
+        <ul class="items" id="litems"></ul>
+        <h3>Hast du zu Hause</h3>
+        <ul class="items home" id="lhome"></ul>
+        <div class="sendrow">
+          <button class="btn" id="copy" type="button">Liste kopieren</button>
+          <button class="btn ghost small" id="dellist" type="button">Liste löschen</button>
+          <span class="count" id="copyinfo"></span>
+        </div>
+        <p class="note">Abgehakt = durchgestrichen. Auf eine Zutat klicken = umschreiben (Ziegenkäse → Feta). „Zu Hause“ kommt aus deinem Vorrat rechts plus allem, das der Anbieter mit „nach Geschmack“ führt. Alles bleibt in diesem Browser gespeichert.</p>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <div class="panel">
+      <h3 style="margin-top:0">Listen</h3>
+      <ul class="datelist" id="datelist"></ul>
+      <h3>Vorrat — immer da</h3>
+      <div class="pantry" id="pantry"></div>
+      <div class="addrow"><input type="text" id="padd" placeholder="Zutat hinzufügen" aria-label="Vorrat ergänzen"><button class="btn small" id="paddbtn" type="button">+</button></div>
+    </div>
+  </aside>
+</div>
+</section>
+</div>
+
+<div class="bar" id="bar"><div class="in">
+  <span class="count"><b id="cnt">0</b> gewählt</span>
+  <button class="btn ghost" id="clear" type="button">Zurücksetzen</button>
+  <button class="btn" id="go" type="button" disabled>Einkaufsliste →</button>
+</div></div>
+
+<dialog id="dlg" class="dlg"></dialog>
+<textarea id="clip" aria-hidden="true" style="position:fixed;left:-9999px;top:0"></textarea>
+
+<script src="_ezrafresh/data.js"></script>
+<script>
+// ---------- local data layer (no server) ----------
+const R=(window.EF&&EF.recipes)||[], WEEKS=(window.EF&&EF.weeks)||{}, WEEK=(window.EF&&EF.week)||'';
+const byId=new Map(R.map(r=>[r.id,r]));
+const store={get(k,d){try{const v=localStorage.getItem('ef_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('ef_'+k,JSON.stringify(v))}catch(e){}}};
+const DEFAULT_PANTRY=['Salz','Pfeffer','Zucker','Wasser','Olivenöl','Öl','Butter','Mehl','Essig'];
+let favs=new Set(store.get('favs',[])), pantry=store.get('pantry',DEFAULT_PANTRY), lists=store.get('lists',[]), currentList=store.get('current',null);
+let picks=new Set(store.get('picks',[]));
+let hidden=new Set(store.get('hidden',[]));
+const PINNED=['Schnell','Kalorien im Blick','High Protein','Low Carb','Gesund genießen'];
+let scope='week', query='', activeTags=new Set(PINNED), favOn=true, maxMins=0, sortBy='', hiddenOn=false, offset=0, hits=[], PAGE=50;
+
+const $=id=>document.getElementById(id);
+const norm=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+const fmt=(a,u)=>{if(a==null)return '';const n=Number.isInteger(a)?a:String(+a.toFixed(2)).replace('.',',');return `${n} ${u||''}`.trim()};
+const dateLabel=iso=>new Date(iso).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+const weekLabel=w=>{if(!w)return '';const [y,n]=w.split('-W');return `KW ${+n} · ${y}`};
+R.forEach(r=>r._hay=norm([r.name,r.sub,...r.tags,...r.cuisine,...r.ings.map(i=>i.n)].join(' ')));
+
+// ---------- tabs ----------
+const TABS={all:'view-grid',week:'view-grid',lists:'view-lists'};
+$('logo').addEventListener('click',e=>{e.preventDefault();showTab('all')});
+function showTab(name){
+  for(const k of Object.keys(TABS)){$('tab-'+k).setAttribute('aria-selected',String(k===name))}
+  for(const v of new Set(Object.values(TABS))){$(v).hidden=TABS[name]!==v}
+  $('bar').hidden=!(name==='all'||name==='week');
+  if(name==='all'||name==='week'){scope=name;loadGrid(true)}
+  if(name==='lists')renderLists();
+  location.hash=name;
+}
+Object.keys(TABS).forEach(k=>$('tab-'+k).addEventListener('click',()=>showTab(k)));
+
+// ---------- grid ----------
+function card(r,sold){
+  const el=document.createElement('article');el.className='card'+(picks.has(r.id)?' picked':'')+(sold?' sold':'');el.dataset.id=r.id;
+  const meta=[r.mins?`<span title="Zeit">⏱️ ${r.mins} min</span>`:'',r.kcal?`<span title="Kalorien pro Portion">⚖️ ${Math.round(r.kcal)} kcal</span>`:'',r.protein?`<span title="Eiweiß pro Portion">💪 ${Math.round(r.protein)} g</span>`:''].join('');
+  const tags=r.tags.slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('');
+  const fav=favs.has(r.id);
+  el.innerHTML=`<button class="pic" type="button" aria-pressed="${picks.has(r.id)}" aria-label="${r.name} auswählen">${r.img?`<img src="_ezrafresh/img/${r.id}.jpg" alt="" loading="lazy">`:''}<span class="pickmark" aria-hidden="true">✓</span>${sold?'<span class="soldtag">ausverkauft</span>':''}</button>
+    <button class="star" type="button" aria-pressed="${fav}" aria-label="Favorit">${fav?'★':'☆'}</button>
+    <button class="eye" type="button" aria-pressed="${hidden.has(r.id)}" aria-label="Ausblenden" title="Ausblenden">${hidden.has(r.id)?'🙈':'👁'}</button>
+    <div class="body"><h3 class="name">${r.name}</h3><p class="sub">${r.sub||''}</p><div class="meta2">${meta}${tags}</div><div class="cardrow"><button class="btn ghost small rezept" type="button">Rezept</button><button class="btn small pickbtn" type="button">${picks.has(r.id)?'✓ gewählt':'Auswählen'}</button></div></div>`;
+  el.querySelector('.pic').addEventListener('click',()=>togglePick(r.id,el));
+  el.querySelector('.pickbtn').addEventListener('click',()=>togglePick(r.id,el));
+  el.querySelector('.rezept').addEventListener('click',()=>openDetail(r.id));
+  el.querySelector('.eye').addEventListener('click',e=>{e.stopPropagation();hidden.has(r.id)?hidden.delete(r.id):hidden.add(r.id);store.set('hidden',[...hidden]);$('n-hidden').textContent=hidden.size;el.remove();hits=hits.filter(h=>h[0].id!==r.id);offset--;$('empty').hidden=hits.length>0});
+  el.querySelector('.star').addEventListener('click',e=>{e.stopPropagation();const b=e.currentTarget;favs.has(r.id)?favs.delete(r.id):favs.add(r.id);store.set('favs',[...favs]);b.setAttribute('aria-pressed',String(favs.has(r.id)));b.textContent=favs.has(r.id)?'★':'☆';$('n-fav').textContent=favs.size});
+  return el;
+}
+function togglePick(id,el){picks.has(id)?picks.delete(id):picks.add(id);el.classList.toggle('picked',picks.has(id));el.querySelector('.pic').setAttribute('aria-pressed',String(picks.has(id)));const pb=el.querySelector('.pickbtn');if(pb)pb.textContent=picks.has(id)?'✓ gewählt':'Auswählen';syncPicks()}
+function syncPicks(){$('cnt').textContent=picks.size;$('go').disabled=picks.size===0;store.set('picks',[...picks])}
+$('clear').addEventListener('click',()=>{picks.clear();document.querySelectorAll('.card').forEach(c=>{c.classList.remove('picked');c.querySelector('.pic').setAttribute('aria-pressed','false');const pb=c.querySelector('.pickbtn');if(pb)pb.textContent='Auswählen'});syncPicks()});
+
+function buildChips(tc){
+  const host=$('chips'),host2=$('chips2');host.innerHTML='';host2.innerHTML='';
+  const mk=(t,n,h)=>{const c=document.createElement('button');c.className='chip';c.type='button';c.dataset.tag=t;c.textContent=n?`${t} ${n}`:t;c.disabled=!n;c.setAttribute('aria-pressed',String(activeTags.has(t)));
+    c.addEventListener('click',()=>{activeTags.has(t)?activeTags.delete(t):activeTags.add(t);c.setAttribute('aria-pressed',String(activeTags.has(t)));loadGrid(true)});h.appendChild(c)};
+  PINNED.forEach(t=>mk(t,tc[t]||0,host));
+  Object.entries(tc).filter(([t])=>!PINNED.includes(t)).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'de')).forEach(([t,n])=>mk(t,n,host2));
+}
+$('more').addEventListener('click',()=>{const open=$('chips2').hidden;$('chips2').hidden=!open;$('more').setAttribute('aria-expanded',String(open));$('more').textContent=open?'weniger ▴':'mehr ▾'});
+$('chip-fav').addEventListener('click',()=>{favOn=!favOn;$('chip-fav').setAttribute('aria-pressed',String(favOn));loadGrid(true)});
+$('chip-15').addEventListener('click',()=>{maxMins=maxMins?0:15;$('chip-15').setAttribute('aria-pressed',String(!!maxMins));loadGrid(true)});
+$('chip-hidden').addEventListener('click',()=>{hiddenOn=!hiddenOn;$('chip-hidden').setAttribute('aria-pressed',String(hiddenOn));loadGrid(true)});
+$('sort').addEventListener('change',()=>{sortBy=$('sort').value;loadGrid(true)});
+let qT;$('q').addEventListener('input',e=>{query=e.target.value.trim();clearTimeout(qT);qT=setTimeout(()=>loadGrid(true),120)});
+
+function search(){
+  const q=norm(query);const tags=[...activeTags];
+  let base;
+  if(scope==='week'){const ids=WEEKS[WEEK]||{};base=R.filter(r=>r.id in ids).map(r=>[r,ids[r.id]])}
+  else base=R.map(r=>[r,0]);
+  const tc={};base.forEach(([r])=>[...r.tags,...r.cuisine].forEach(t=>tc[t]=(tc[t]||0)+1));
+  let out=base.filter(([r])=>{
+    if(hidden.has(r.id)!==hiddenOn)return false;
+    if(q&&!r._hay.includes(q))return false;
+    if(maxMins&&!(r.mins&&r.mins<=maxMins))return false;
+    if(tags.length){const hit=tags.some(t=>r.tags.includes(t)||r.cuisine.includes(t));const hf=favOn&&favs.has(r.id);if(!(hit||hf))return false}
+    return true;
+  });
+  if(scope==='all')out.sort((a,b)=>a[0].name.localeCompare(b[0].name,'de'));
+  const SORTS={name:(a,b)=>a.name.localeCompare(b.name,'de'),kcal:(a,b)=>(a.kcal||1e9)-(b.kcal||1e9),protein:(a,b)=>(b.protein||-1)-(a.protein||-1),mins:(a,b)=>(a.mins||1e9)-(b.mins||1e9)};
+  if(SORTS[sortBy])out.sort((a,b)=>SORTS[sortBy](a[0],b[0]));
+  if(favOn)out.sort((a,b)=>(favs.has(a[0].id)?0:1)-(favs.has(b[0].id)?0:1));
+  return {out,tc};
+}
+function loadGrid(reset){
+  if(reset){offset=0;$('grid').innerHTML='';const s=search();hits=s.out;buildChips(s.tc);$('n-hidden').textContent=hidden.size}
+  const page=hits.slice(offset,offset+PAGE);
+  page.forEach(([r,sold])=>$('grid').appendChild(card(r,sold)));
+  offset+=page.length;
+  $('empty').hidden=hits.length>0;
+  $('loadmore').hidden=offset>=hits.length;
+  $('loadmore').textContent=`mehr laden (${offset} von ${hits.length})`;
+  $('status').textContent=scope==='week'?`${weekLabel(WEEK)} · ${hits.length} Gerichte`:`${hits.length} Gerichte im Archiv`;
+}
+$('loadmore').addEventListener('click',()=>loadGrid(false));
+
+// ---------- detail ----------
+function openDetail(id){
+  const r=byId.get(id);if(!r)return;const dlg=$('dlg');
+  const img=r.hd||(r.img?`_ezrafresh/img/${r.id}.jpg`:'');
+  dlg.innerHTML=`<button class="close" type="button" aria-label="Schließen">×</button>${img?`<img src="${img}" alt="" onerror="this.onerror=null;this.src='_ezrafresh/img/${r.id}.jpg'">`:''}<div class="in">
+    <h2>${r.name}</h2><p class="sub">${r.sub||''}</p>
+    <div class="meta2">${r.mins?`<span>⏱️ ${r.mins} min</span>`:''}${r.kcal?`<span>⚖️ ${Math.round(r.kcal)} kcal</span>`:''}${r.protein?`<span>💪 ${Math.round(r.protein)} g Eiweiß</span>`:''}</div>
+    <div class="cols"><div><h3 style="margin:0 0 6px">Zutaten für 2</h3><ul>${r.ings.map(i=>`<li><span class="amt">${fmt(i.a,i.u)}</span><span>${i.n}</span></li>`).join('')}</ul>
+    ${r.allergens.length?`<p class="note">Allergene: ${r.allergens.join(', ')}</p>`:''}</div>
+    <div><h3 style="margin:0 0 6px">Zubereitung</h3><ol>${r.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div></div>
+    <div class="row"><button class="btn" id="dpick" type="button">${picks.has(r.id)?'✓ gewählt':'Auswählen'}</button><a class="btn ghost" href="${r.url}" target="_blank" rel="noopener">Original öffnen ↗</a></div></div>`;
+  dlg.querySelector('.close').addEventListener('click',()=>dlg.close());
+  dlg.querySelector('#dpick').addEventListener('click',()=>{const el=document.querySelector(`.card[data-id="${r.id}"]`);if(el)togglePick(r.id,el);else{picks.has(r.id)?picks.delete(r.id):picks.add(r.id);syncPicks()}dlg.querySelector('#dpick').textContent=picks.has(r.id)?'✓ gewählt':'Auswählen'});
+  dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
+  dlg.showModal();
+}
+
+// ---------- lists ----------
+const inPantry=name=>{const n=norm(name);return pantry.some(p=>{const q=norm(p);return n===q||n.startsWith(q+' ')||n.startsWith(q+',')||n.endsWith(' '+q)})};
+function buildList(){
+  const recs=[...picks].map(id=>byId.get(id)).filter(Boolean);
+  const m=new Map();
+  recs.forEach(r=>r.ings.forEach(i=>{const k=norm(i.n)+'|'+(i.u||'');const e=m.get(k)||{n:i.n,u:i.u||'',a:0,has:false};if(i.a){e.a+=i.a;e.has=true}m.set(k,e)}));
+  const items=[],home=[];
+  for(const e of m.values()){if(!e.has||inPantry(e.n)){home.push(e.n);continue}e.warn=(e.u==='Stück'&&e.a>10);e.done=false;items.push(e)}
+  items.sort((x,y)=>x.n.localeCompare(y.n,'de'));
+  return {id:Date.now().toString(36),created_at:new Date().toISOString(),week:WEEK,recipes:recs.map(r=>r.id),items,home:[...new Set(home)].sort((a,b)=>a.localeCompare(b,'de'))};
+}
+function saveLists(){store.set('lists',lists);store.set('current',currentList)}
+$('go').addEventListener('click',()=>{const l=buildList();lists.unshift(l);currentList=l.id;picks.clear();syncPicks();saveLists();showTab('lists');window.scrollTo({top:0,behavior:'smooth'})});
+
+function renderLists(){
+  $('n-lists').textContent=lists.length;
+  const dl=$('datelist');dl.innerHTML='';
+  if(!currentList&&lists[0])currentList=lists[0].id;
+  lists.forEach(l=>{const li=document.createElement('li');const b=document.createElement('button');b.type='button';b.setAttribute('aria-current',String(l.id===currentList));
+    const open=l.items.filter(i=>!i.done).length;b.innerHTML=`<span>${l.recipes.length} Gerichte</span><span class="d">${dateLabel(l.created_at)} · ${open} offen</span>`;
+    b.addEventListener('click',()=>{currentList=l.id;saveLists();renderLists()});li.appendChild(b);const del=document.createElement('button');del.type='button';del.className='del';del.title='Liste löschen';del.setAttribute('aria-label','Liste löschen');del.textContent='✕';del.addEventListener('click',()=>{if(!confirm('Liste löschen?'))return;lists=lists.filter(x=>x.id!==l.id);if(currentList===l.id)currentList=null;saveLists();renderLists()});li.appendChild(del);dl.appendChild(li)});
+  renderPantry();
+  const l=lists.find(x=>x.id===currentList);
+  $('nolist').hidden=!!l;$('listbody').hidden=!l;$('copyinfo').textContent='';
+  if(!l)return;
+  $('ltitle').textContent='Einkaufsliste · '+dateLabel(l.created_at);
+  $('lfor').textContent=`für 2 Personen · ${l.recipes.length} Gerichte${l.week?' · '+weekLabel(l.week):''}`;
+  const names=l.recipes.map(id=>byId.get(id)).filter(Boolean);
+  $('lchosen').innerHTML=names.map(r=>`<span>${r.name}</span>`).join('');
+  const ul=$('litems');ul.innerHTML='';
+  l.items.forEach((it,idx)=>{const li=document.createElement('li');if(it.done)li.classList.add('done');const id=`it-${l.id}-${idx}`;
+    li.innerHTML=`<input type="checkbox" id="${id}" ${it.done?'checked':''}><span class="amt">${fmt(it.a,it.u)}</span><button type="button" class="nm" title="Klicken zum Ändern">${it.n}</button>${it.warn?'<span class="warn">⚠ Tippfehler im Original? prüfen</span>':''}`;
+    li.querySelector('input').addEventListener('change',e=>{it.done=e.target.checked;li.classList.toggle('done',it.done);saveLists();updateStats(l)});
+    li.querySelector('.nm').addEventListener('click',e=>{
+      const btn=e.currentTarget;const inp=document.createElement('input');inp.type='text';inp.className='edit';inp.value=it.n;inp.setAttribute('aria-label','Zutat ändern');
+      btn.replaceWith(inp);inp.focus();inp.select();let done=false;
+      const save=()=>{if(done)return;done=true;const v=inp.value.trim();if(v&&v!==it.n){it.n=v;it.edited=true;saveLists()}btn.textContent=it.n;btn.classList.toggle('edited',!!it.edited);inp.replaceWith(btn)};
+      inp.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();save()}if(ev.key==='Escape'){done=true;inp.replaceWith(btn)}});
+      inp.addEventListener('blur',save);
+    });
+    if(it.edited)li.querySelector('.nm').classList.add('edited');
+    ul.appendChild(li)});
+  $('lhome').innerHTML=l.home.map(n=>`<li>${n}</li>`).join('')||'<li>—</li>';
+  updateStats(l);
+  $('copy').onclick=()=>{
+    const rows=l.items.filter(i=>!i.done).map(i=>`${fmt(i.a,i.u)} ${i.n}`.trim());
+    const text=`Einkaufsliste · ${dateLabel(l.created_at)}\n${names.map(r=>'• '+r.name).join('\n')}\n\n${rows.join('\n')}`;
+    const done=()=>{$('copyinfo').textContent=`✓ ${rows.length} Zeilen kopiert`};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done).catch(()=>fallback())}else fallback();
+    function fallback(){const ta=$('clip');ta.value=text;ta.select();try{document.execCommand('copy');done()}catch(e){$('copyinfo').textContent='Kopieren fehlgeschlagen'}}
+  };
+  $('dellist').onclick=()=>{if(!confirm('Liste löschen?'))return;lists=lists.filter(x=>x.id!==l.id);currentList=null;saveLists();renderLists()};
+}
+function updateStats(l){const open=l.items.filter(i=>!i.done).length;$('lstats').textContent=`${open} von ${l.items.length} noch zu kaufen`;
+  const b=[...document.querySelectorAll('#datelist button')].find(x=>x.getAttribute('aria-current')==='true');if(b)b.querySelector('.d').textContent=`${dateLabel(l.created_at)} · ${open} offen`}
+function renderPantry(){const p=$('pantry');p.innerHTML='';pantry.forEach(name=>{const s=document.createElement('span');s.innerHTML=`${name}<button type="button" aria-label="${name} entfernen">×</button>`;
+  s.querySelector('button').addEventListener('click',()=>{pantry=pantry.filter(x=>x!==name);store.set('pantry',pantry);renderPantry()});p.appendChild(s)})}
+function addPantry(){const inp=$('padd');const v=inp.value.trim();if(!v)return;if(!pantry.some(x=>norm(x)===norm(v)))pantry.push(v);pantry.sort((a,b)=>a.localeCompare(b,'de'));store.set('pantry',pantry);inp.value='';renderPantry()}
+$('paddbtn').addEventListener('click',addPantry);$('padd').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addPantry()}});
+
+// ---------- boot ----------
+(function(){
+  const weekIds=WEEKS[WEEK]||{};
+  $('n-all').textContent=R.length;$('n-week').textContent=Object.keys(weekIds).filter(id=>byId.has(id)).length;$('n-lists').textContent=lists.length;$('n-fav').textContent=favs.size;
+  $('brandmeta').innerHTML=`${weekLabel(WEEK)}<br>Stand ${EF&&EF.exported?EF.exported.replace('T',' '):'—'} · ${R.length} Rezepte`;
+  syncPicks();
+  const h=location.hash.replace('#','');showTab(TABS[h]?h:'week');
+})();
+</script>
+</body>
+</html>
